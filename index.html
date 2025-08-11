@@ -10,13 +10,24 @@
             align-items: center;     /* Center horizontally */
             margin: 0;
         }
-        
     </style>
 </head>
 <body>
     <br><br><br>
     <h1>Scan This QR Code to pay</h1>
-    <h2>Amount to be paid: Rs.50</h2>
+    <h2>Amount to be paid: Rs.<span id="amount">—</span></h2>
     <img src="qr.png" alt="QR Code">
+
+    <script>
+        fetch('https://santhoshbhavanpc.github.io/screen1/amount.json?ts=' + Date.now())
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('amount').textContent = data.amount;
+            })
+            .catch(error => {
+                console.error('Error fetching amount:', error);
+                document.getElementById('amount').textContent = 'N/A';
+            });
+    </script>
 </body>
 </html>
