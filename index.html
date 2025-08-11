@@ -19,6 +19,7 @@
     <img src="qr.png" alt="QR Code">
 
     <script>
+        // Load amount dynamically from your json file
         fetch('https://santhoshbhavanpc.github.io/screen1/amount.json?ts=' + Date.now())
             .then(response => response.json())
             .then(data => {
@@ -28,6 +29,40 @@
                 console.error('Error fetching amount:', error);
                 document.getElementById('amount').textContent = 'N/A';
             });
+    </script>
+
+    <!-- Firebase SDKs - compat versions for easier usage in plain HTML -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+    <script>
+        // Your Firebase config (replace with your actual config below)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWocGhLMcWTHNgS8pW2Y-jV1r5s-2pd6M",
+            authDomain: "paymentmodule-ed365.firebaseapp.com",
+            databaseURL: "https://paymentmodule-ed365-default-rtdb.firebaseio.com", // Add this line manually
+            projectId: "paymentmodule-ed365",
+            storageBucket: "paymentmodule-ed365.firebasestorage.app",
+            messagingSenderId: "182140018152",
+            appId: "1:182140018152:web:64b77baa1859cd4514d85d",
+            measurementId: "G-BZRD8Q6FPP"
+        };
+
+        // Initialize Firebase app
+        firebase.initializeApp(firebaseConfig);
+
+        // Get a reference to the database service
+        const database = firebase.database();
+
+        // Listen for payment status updates
+        database.ref('paymentStatus/paymentComplete').on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                // After payment is complete, redirect after 10 seconds
+                setTimeout(() => {
+                    window.location.href = 'payment-complete.html'; // Change this URL if needed
+                }, 10000);
+            }
+        });
     </script>
 </body>
 </html>
