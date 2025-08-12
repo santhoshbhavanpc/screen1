@@ -31,16 +31,16 @@
             });
     </script>
 
-    <!-- Firebase SDKs - compat versions for easier usage in plain HTML -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
     <script>
-        // Your Firebase config (replace with your actual config below)
+        // Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyBWocGhLMcWTHNgS8pW2Y-jV1r5s-2pd6M",
             authDomain: "paymentmodule-ed365.firebaseapp.com",
-            databaseURL: "https://paymentmodule-ed365-default-rtdb.firebaseio.com", // Add this line manually
+            databaseURL: "https://paymentmodule-ed365-default-rtdb.firebaseio.com",
             projectId: "paymentmodule-ed365",
             storageBucket: "paymentmodule-ed365.firebasestorage.app",
             messagingSenderId: "182140018152",
@@ -48,19 +48,20 @@
             measurementId: "G-BZRD8Q6FPP"
         };
 
-        // Initialize Firebase app
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-
-        // Get a reference to the database service
         const database = firebase.database();
 
         // Listen for payment status updates
         database.ref('paymentStatus/paymentComplete').on('value', (snapshot) => {
             if (snapshot.val() === true) {
-                // After payment is complete, redirect after 10 seconds
-                setTimeout(() => {
-                    window.location.href = 'indexing.html'; // Change this URL if needed
-                }, 10000);
+                // Redirect immediately
+                window.location.href = 'indexing.html';
+
+                // Reset the payment status so it doesn't trigger again
+                database.ref('paymentStatus').set({
+                    paymentComplete: false
+                });
             }
         });
     </script>
