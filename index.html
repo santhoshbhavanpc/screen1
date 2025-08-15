@@ -5,65 +5,65 @@
     <style>
         body {
             display: flex;
-            flex-direction: column; /* Stack items vertically */
-            justify-content: center; /* Center vertically */
-            align-items: center;     /* Center horizontally */
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center;     
             margin: 0;
         }
     </style>
 </head>
 <body>
     <br><br><br>
-    <h1>Scan This QR Code to pay</h1>
+    <h1>Scan This QR Code to Pay</h1>
     <h2>Amount to be paid: Rs.<span id="amount">—</span></h2>
     <img src="qr.png" alt="QR Code">
-
-    <script>
-        // Load amount dynamically from your json file
-        fetch('https://santhoshbhavanpc.github.io/screen1/amount.json?ts=' + Date.now())
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('amount').textContent = data.amount;
-            })
-            .catch(error => {
-                console.error('Error fetching amount:', error);
-                document.getElementById('amount').textContent = 'N/A';
-            });
-    </script>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
     <script>
-        // Firebase config
+        // ====== Firebase Config ======
         const firebaseConfig = {
             apiKey: "AIzaSyBWocGhLMcWTHNgS8pW2Y-jV1r5s-2pd6M",
-            authDomain: "paymentmodule-ed365.firebaseapp.com",
-            databaseURL: "https://paymentmodule-ed365-default-rtdb.firebaseio.com",
-            projectId: "paymentmodule-ed365",
-            storageBucket: "paymentmodule-ed365.firebasestorage.app",
-            messagingSenderId: "182140018152",
-            appId: "1:182140018152:web:64b77baa1859cd4514d85d",
-            measurementId: "G-BZRD8Q6FPP"
+            authDomain: "entry-gate-ddc57.firebaseapp.com",
+            databaseURL: "https://entry-gate-ddc57-default-rtdb.firebaseio.com/",
+            projectId: "entry-gate-ddc57",
+            storageBucket: "entry-gate-ddc57.appspot.com",
+            messagingSenderId: "1234567890", // optional
+            appId: "1:1234567890:web:xxxxxxxxxxxxxx" // optional
         };
 
-        // Initialize Firebase
+        // ====== Initialize Firebase ======
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const db = firebase.database();
 
-        // Listen for payment status updates
-        database.ref('paymentStatus/paymentComplete').on('value', (snapshot) => {
-            if (snapshot.val() === true) {
-                // Redirect immediately
-                window.location.href = 'indexing.html';
+        // ====== VEHICLE NUMBER to SEARCH ======
+        const vehicleNumber = prompt("Enter your Vehicle Number:"); // e.g. KL24P2604
 
-                // Reset the payment status so it doesn't trigger again
-                database.ref('paymentStatus').set({
-                    paymentComplete: false
-                });
+        // ====== Function to find and display price ======
+        function findPrice(snapshot) {
+            let found = false;
+            const data = snapshot.val();
+            for (let slot in data) {
+                for (let recordId in data[slot]) {
+                    let record = data[slot][recordId];
+                    if (record.vehicleNo && record.vehicleNo.toLowerCase() === vehicleNumber.toLowerCase()) {
+                        document.getElementById('amount').textContent = record.price;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) break;
             }
-        });
+            if (!found) {
+                document.getElementById('amount').textContent = "Not found";
+            }
+        }
+
+        // ====== Listen for live updates ======
+        db.ref("slots").on("value", findPrice);
     </script>
 </body>
 </html>
+
