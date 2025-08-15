@@ -19,7 +19,7 @@
 
     <!-- QR Code wrapped in link -->
     <a id="qrLink" href="#" target="_blank">
-        <img src="qr.png" alt="QR Code">
+    <img id="qrImage" src="qr.png" alt="QR Code">
     </a>
 
     <!-- Firebase SDKs -->
@@ -51,15 +51,20 @@
                 for (let recordId in data[slot]) {
                     let record = data[slot][recordId];
                     if (record.vehicleNo && record.vehicleNo.toLowerCase() === vehicleNumber.toLowerCase()) {
-                        document.getElementById('amount').textContent = record.price;
+                        const amount = record.price;
+                        const vNo = record.vehicleNo;
 
-                        // Update QR link to include both amount & vehicle number
-                        const newLink = "https://santhoshbhavanpc.github.io/payment2.1/?amount=" + encodeURIComponent(record.price) + "&vehicleNo=" + encodeURIComponent(vehicleNumber);
-                        document.getElementById('qrLink').href = newLink;
+                        // URL for second page with params
+                        const paymentUrl = `https://santhoshbhavanpc.github.io/payment2.1/?vehicleNo=${encodeURIComponent(vNo)}&amount=${encodeURIComponent(amount)}`;
+    
+                        // Generate QR code image
+                        const qrImageUrl = `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(paymentUrl)}&chs=200x200`;
+
+                        // Update QR image on page
+                        document.getElementById('qrImage').src = qrImageUrl;
 
                         found = true;
-                        break;
-                    }
+                        }
                 }
                 if (found) break;
             }
