@@ -1,80 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QR Code Page</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center;     
-            margin: 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>QR Code Payment</title>
 </head>
 <body>
-    <br><br><br>
-    <h1>Scan This QR Code to Pay</h1>
-    <h2>Amount to be paid: Rs.<span id="amount">—</span></h2>
+  <h1>Scan This QR Code to Pay</h1>
+  <p>Amount to be paid: Rs.<span id="amount">—</span></p>
+  <img id="qrImage" src="" alt="QR Code">
 
-    <!-- QR Code wrapped in link -->
-    <a id="qrLink" href="#" target="_blank">
-    <img id="qrImage" src="qr.png" alt="QR Code">
-    </a>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "https://entry-gate-ddc57-default-rtdb.firebaseio.com/",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-    <script>
-        // ====== Firebase Config ======
-        const firebaseConfig = {
-            apiKey: "AIzaSyBWocGhLMcWTHNgS8pW2Y-jV1r5s-2pd6M",
-            authDomain: "entry-gate-ddc57.firebaseapp.com",
-            databaseURL: "https://entry-gate-ddc57-default-rtdb.firebaseio.com/",
-            projectId: "entry-gate-ddc57",
-            storageBucket: "entry-gate-ddc57.appspot.com",
-        };
+    // Init Firebase
+    firebase.initializeApp(firebaseConfig);
 
-        // ====== Initialize Firebase ======
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    // Fetch latest vehicle and amount
+    firebase.database().ref('parking').limitToLast(1).on('value', snapshot => {
+      snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const vehicleNo = data.vehicleNo || "NA";
+        const amount = data.price || 0;
 
-        // ====== VEHICLE NUMBER to SEARCH ======
-        const vehicleNumber = prompt("Enter your Vehicle Number:"); // e.g. KL24P2604
+        // Show amount
+        document.getElementById("amount").textContent = amount;
 
-        // ====== Function to find and display price ======
-        function findPrice(snapshot) {
-            let found = false;
-            const data = snapshot.val();
-            for (let slot in data) {
-                for (let recordId in data[slot]) {
-                    let record = data[slot][recordId];
-                    if (record.vehicleNo && record.vehicleNo.toLowerCase() === vehicleNumber.toLowerCase()) {
-                        const amount = record.price;
-                        const vNo = record.vehicleNo;
+        // Make second page URL
+        const secondPageUrl = `https://santhoshbhavanpc.github.io/payment2.1/?vehicleNo=${encodeURIComponent(vehicleNo)}&amount=${encodeURIComponent(amount)}`;
 
-                        // URL for second page with params
-                        const paymentUrl = `https://santhoshbhavanpc.github.io/payment2.1/?vehicleNo=${encodeURIComponent(vNo)}&amount=${encodeURIComponent(amount)}`;
-    
-                        // Generate QR code image
-                        const qrImageUrl = `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(paymentUrl)}&chs=200x200`;
-
-                        // Update QR image on page
-                        document.getElementById('qrImage').src = qrImageUrl;
-
-                        found = true;
-                        }
-                }
-                if (found) break;
-            }
-            if (!found) {
-                document.getElementById('amount').textContent = "Not found";
-            }
-        }
-
-        // ====== Listen for live updates ======
-        db.ref("slots").on("value", findPrice);
-    </script>
+        // Generate QR
+        const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(secondPageUrl)}`;
+        document.getElementById("qrImage").src = qrUrl;
+      });
+    });
+  </script>
 </body>
-</html>
+</html>c
