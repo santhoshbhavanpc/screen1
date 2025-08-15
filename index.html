@@ -16,7 +16,11 @@
     <br><br><br>
     <h1>Scan This QR Code to Pay</h1>
     <h2>Amount to be paid: Rs.<span id="amount">—</span></h2>
-    <img src="qr.png" alt="QR Code">
+
+    <!-- QR Code wrapped in link -->
+    <a id="qrLink" href="#" target="_blank">
+        <img src="qr.png" alt="QR Code">
+    </a>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -30,8 +34,6 @@
             databaseURL: "https://entry-gate-ddc57-default-rtdb.firebaseio.com/",
             projectId: "entry-gate-ddc57",
             storageBucket: "entry-gate-ddc57.appspot.com",
-            messagingSenderId: "1234567890", // optional
-            appId: "1:1234567890:web:xxxxxxxxxxxxxx" // optional
         };
 
         // ====== Initialize Firebase ======
@@ -40,7 +42,6 @@
 
         // ====== VEHICLE NUMBER to SEARCH ======
         const vehicleNumber = prompt("Enter your Vehicle Number:"); // e.g. KL24P2604
-        window.location.href = "https://santhoshbhavanpc.github.io/payment2.1/?vehicleNo=" + encodeURIComponent(vehicleNumber);
 
         // ====== Function to find and display price ======
         function findPrice(snapshot) {
@@ -51,6 +52,11 @@
                     let record = data[slot][recordId];
                     if (record.vehicleNo && record.vehicleNo.toLowerCase() === vehicleNumber.toLowerCase()) {
                         document.getElementById('amount').textContent = record.price;
+
+                        // Update QR link to include both amount & vehicle number
+                        const newLink = "https://santhoshbhavanpc.github.io/payment2.1/?amount=" + encodeURIComponent(record.price) + "&vehicleNo=" + encodeURIComponent(vehicleNumber);
+                        document.getElementById('qrLink').href = newLink;
+
                         found = true;
                         break;
                     }
@@ -67,5 +73,3 @@
     </script>
 </body>
 </html>
-
-
