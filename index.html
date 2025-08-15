@@ -1,50 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>QR Code Payment</title>
+    <title>QR Code Page</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column; /* Stack items vertically */
+            justify-content: center; /* Center vertically */
+            align-items: center;     /* Center horizontally */
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
-  <h1>Scan This QR Code to Pay</h1>
-  <p>Amount to be paid: Rs.<span id="amount">—</span></p>
-  <img id="qrImage" src="" alt="QR Code">
+    <br><br><br>
+    <h1>Scan This QR Code to pay</h1>
+    <h2>Amount to be paid: Rs.<span id="amount">—</span></h2>
+    <img src="qr.png" alt="QR Code">
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Load amount dynamically from your json file
+        fetch('https://santhoshbhavanpc.github.io/screen1/amount.json?ts=' + Date.now())
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('amount').textContent = data.amount;
+            })
+            .catch(error => {
+                console.error('Error fetching amount:', error);
+                document.getElementById('amount').textContent = 'N/A';
+            });
+    </script>
 
-  <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      databaseURL: "https://entry-gate-ddc57-default-rtdb.firebaseio.com/",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-    // Init Firebase
-    firebase.initializeApp(firebaseConfig);
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWocGhLMcWTHNgS8pW2Y-jV1r5s-2pd6M",
+            authDomain: "paymentmodule-ed365.firebaseapp.com",
+            databaseURL: "https://paymentmodule-ed365-default-rtdb.firebaseio.com",
+            projectId: "paymentmodule-ed365",
+            storageBucket: "paymentmodule-ed365.firebasestorage.app",
+            messagingSenderId: "182140018152",
+            appId: "1:182140018152:web:64b77baa1859cd4514d85d",
+            measurementId: "G-BZRD8Q6FPP"
+        };
 
-    // Fetch latest vehicle and amount
-    firebase.database().ref('parking').limitToLast(1).on('value', snapshot => {
-      snapshot.forEach(childSnapshot => {
-        const data = childSnapshot.val();
-        const vehicleNo = data.vehicleNo || "NA";
-        const amount = data.price || 0;
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        // Show amount
-        document.getElementById("amount").textContent = amount;
+        // Listen for payment status updates
+        database.ref('paymentStatus/paymentComplete').on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                // Redirect immediately
+                window.location.href = 'indexing.html';
 
-        // Make second page URL
-        const secondPageUrl = `https://santhoshbhavanpc.github.io/payment2.1/?vehicleNo=${encodeURIComponent(vehicleNo)}&amount=${encodeURIComponent(amount)}`;
-
-        // Generate QR
-        const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(secondPageUrl)}`;
-        document.getElementById("qrImage").src = qrUrl;
-      });
-    });
-  </script>
+                // Reset the payment status so it doesn't trigger again
+                database.ref('paymentStatus').set({
+                    paymentComplete: false
+                });
+            }
+        });
+    </script>
 </body>
-</html>c
+</html>
