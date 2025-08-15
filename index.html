@@ -40,6 +40,7 @@
 
         // ====== VEHICLE NUMBER to SEARCH ======
         const vehicleNumber = prompt("Enter your Vehicle Number:"); // e.g. KL24P2604
+        window.location.href = "https://santhoshbhavanpc.github.io/payment2.1/?vehicleNo=" + encodeURIComponent(vehicleNumber);
 
         // ====== Function to find and display price ======
         function findPrice(snapshot) {
