@@ -33,19 +33,7 @@
             storageBucket: "entry-gate-ddc57.appspot.com"
         };
 
-        // ========= 2nd Firebase for payment status =========
-        const firebaseConfigPayment = {
-            apiKey: "AIzaSyBWocGhLMcWTHNgS8pW2Y-jV1r5s-2pd6M",
-            authDomain: "paymentmodule-ed365.firebaseapp.com",
-            databaseURL: "https://paymentmodule-ed365-default-rtdb.firebaseio.com",
-            projectId: "paymentmodule-ed365",
-            storageBucket: "paymentmodule-ed365.firebasestorage.app",
-            messagingSenderId: "182140018152",
-            appId: "1:182140018152:web:64b77baa1859cd4514d85d",
-            measurementId: "G-BZRD8Q6FPP"
-        };
-
-        // ========= 3rd Firebase for storing history =========
+        // ========= 3rd Firebase for storing history & payment =========
         const firebaseConfigHistory = {
             apiKey: "AIzaSyBpRla6iYXgZuxyCHvtQ8bIcwKf5i3ga1U",
             authDomain: "history-storing.firebaseapp.com",
@@ -58,15 +46,14 @@
 
         // ====== Initialize Firebase apps separately ======
         const appPrice = firebase.initializeApp(firebaseConfigPrice, "priceApp");
-        const appPayment = firebase.initializeApp(firebaseConfigPayment, "paymentApp");
         const appHistory = firebase.initializeApp(firebaseConfigHistory, "historyApp");
 
         const dbPrice = firebase.database(appPrice);
-        const dbPayment = firebase.database(appPayment);
         const dbHistory = firebase.database(appHistory);
 
         // ====== Ask for vehicle number and fetch price ======
         const vehicleNumber = prompt("Enter your Vehicle Number:");
+        let currentRecordRef = null; // will store path to this user’s record
 
         function findPrice(snapshot) {
             let found = false;
@@ -77,11 +64,18 @@
                     if (record.vehicleNo && record.vehicleNo.toLowerCase() === vehicleNumber.toLowerCase()) {
                         document.getElementById('amount').textContent = record.price;
 
-                        // ====== Store history in 3rd DB (always paymentComplete:false) ======
-                        dbHistory.ref("vehicleLogs").push({
+                        // ====== Store history in 3rd DB with paymentComplete=false ======
+                        currentRecordRef = dbHistory.ref("vehicleLogs").push({
                             vehicleNo: vehicleNumber,
                             price: record.price,
                             paymentComplete: false
+                        });
+
+                        // ====== Listen for payment completion in THIS record ======
+                        currentRecordRef.on("value", (snap) => {
+                            if (snap.val() && snap.val().paymentComplete === true) {
+                                window.location.href = 'indexing.html';
+                            }
                         });
 
                         found = true;
@@ -94,17 +88,7 @@
                 document.getElementById('amount').textContent = "Not found";
             }
         }
-        dbPrice.ref("slots").on("value", findPrice);
-
-        // ====== Listen for payment completion (2nd DB only) ======
-        dbPayment.ref('paymentStatus/paymentComplete').on('value', (snapshot) => {
-            if (snapshot.val() === true) {
-                window.location.href = 'indexing.html';
-
-                // Reset 2nd DB flag only
-                dbPayment.ref('paymentStatus').set({ paymentComplete: false });
-            }
-        });
+        dbPrice.ref("slots").once("value", findPrice);
     </script>
 </body>
 </html>
