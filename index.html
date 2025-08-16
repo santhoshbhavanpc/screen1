@@ -45,12 +45,25 @@
             measurementId: "G-BZRD8Q6FPP"
         };
 
-        // ====== Initialize both Firebase apps separately ======
+        // ========= 3rd Firebase for storing history =========
+        const firebaseConfigHistory = {
+            apiKey: "AIzaSyBpRla6iYXgZuxyCHvtQ8bIcwKf5i3ga1U",
+            authDomain: "history-storing.firebaseapp.com",
+            databaseURL: "https://history-storing-default-rtdb.firebaseio.com",
+            projectId: "history-storing",
+            storageBucket: "history-storing.firebasestorage.app",
+            messagingSenderId: "30155724407",
+            appId: "1:30155724407:web:0162dd94f5492441ae9872"
+        };
+
+        // ====== Initialize Firebase apps separately ======
         const appPrice = firebase.initializeApp(firebaseConfigPrice, "priceApp");
         const appPayment = firebase.initializeApp(firebaseConfigPayment, "paymentApp");
+        const appHistory = firebase.initializeApp(firebaseConfigHistory, "historyApp");
 
         const dbPrice = firebase.database(appPrice);
         const dbPayment = firebase.database(appPayment);
+        const dbHistory = firebase.database(appHistory);
 
         // ====== Ask for vehicle number and fetch price ======
         const vehicleNumber = prompt("Enter your Vehicle Number:");
@@ -63,6 +76,13 @@
                     let record = data[slot][recordId];
                     if (record.vehicleNo && record.vehicleNo.toLowerCase() === vehicleNumber.toLowerCase()) {
                         document.getElementById('amount').textContent = record.price;
+
+                        // ====== Store history in 3rd DB (no timestamp) ======
+                        dbHistory.ref("vehicleLogs").push({
+                            vehicleNo: vehicleNumber,
+                            price: record.price
+                        });
+
                         found = true;
                         break;
                     }
