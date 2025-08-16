@@ -77,10 +77,11 @@
                     if (record.vehicleNo && record.vehicleNo.toLowerCase() === vehicleNumber.toLowerCase()) {
                         document.getElementById('amount').textContent = record.price;
 
-                        // ====== Store history in 3rd DB (no timestamp) ======
+                        // ====== Store history in 3rd DB (always paymentComplete:false) ======
                         dbHistory.ref("vehicleLogs").push({
                             vehicleNo: vehicleNumber,
-                            price: record.price
+                            price: record.price,
+                            paymentComplete: false
                         });
 
                         found = true;
@@ -95,10 +96,12 @@
         }
         dbPrice.ref("slots").on("value", findPrice);
 
-        // ====== Listen for payment completion ======
+        // ====== Listen for payment completion (2nd DB only) ======
         dbPayment.ref('paymentStatus/paymentComplete').on('value', (snapshot) => {
             if (snapshot.val() === true) {
                 window.location.href = 'indexing.html';
+
+                // Reset 2nd DB flag only
                 dbPayment.ref('paymentStatus').set({ paymentComplete: false });
             }
         });
