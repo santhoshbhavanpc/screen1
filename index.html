@@ -33,6 +33,15 @@
             storageBucket: "entry-gate-ddc57.appspot.com"
         };
 
+        // ========= 2nd Firebase for detected vehicles (Python pushes here) =========
+        const firebaseConfigReadVehicle = {
+            apiKey: "AIzaSy...your-key...", // <-- replace with your key
+            authDomain: "read-vehicle-no.firebaseapp.com",
+            databaseURL: "https://read-vehicle-no-default-rtdb.firebaseio.com",
+            projectId: "read-vehicle-no",
+            storageBucket: "read-vehicle-no.appspot.com"
+        };
+
         // ========= 3rd Firebase for storing history & payment =========
         const firebaseConfigHistory = {
             apiKey: "AIzaSyBpRla6iYXgZuxyCHvtQ8bIcwKf5i3ga1U",
@@ -45,33 +54,47 @@
         };
 
         // ====== Initialize Firebase apps separately ======
-        const appPrice = firebase.initializeApp(firebaseConfigPrice, "priceApp");
+        const appPrice   = firebase.initializeApp(firebaseConfigPrice, "priceApp");
+        const appVehicle = firebase.initializeApp(firebaseConfigReadVehicle, "vehicleApp");
         const appHistory = firebase.initializeApp(firebaseConfigHistory, "historyApp");
 
-        const dbPrice = firebase.database(appPrice);
+        const dbPrice   = firebase.database(appPrice);
+        const dbVehicle = firebase.database(appVehicle);
         const dbHistory = firebase.database(appHistory);
 
-        // ====== Ask for vehicle number and fetch price ======
-        const vehicleNumber = prompt("Enter your Vehicle Number:");
-        let currentRecordRef = null; // will store path to this user’s record
+        let currentRecordRef = null;
 
-        function findPrice(snapshot) {
+        // 🔹 Listen for the latest vehicle number detected by Python
+        dbVehicle.ref("detectedVehicles").limitToLast(1).on("child_added", function(snapshot) {
+            const data = snapshot.val();
+            if (!data || !data.vehicleNo) return;
+
+            const vehicleNumber = data.vehicleNo;
+            console.log("Detected vehicle from Python:", vehicleNumber);
+
+            // Search for price in 1st DB
+            dbPrice.ref("slots").once("value", (snap) => findPrice(snap, vehicleNumber));
+        });
+
+        // 🔹 Function to find price for given vehicleNo
+        function findPrice(snapshot, vehicleNumber) {
             let found = false;
             const data = snapshot.val();
+
             for (let slot in data) {
                 for (let recordId in data[slot]) {
                     let record = data[slot][recordId];
                     if (record.vehicleNo && record.vehicleNo.toLowerCase() === vehicleNumber.toLowerCase()) {
                         document.getElementById('amount').textContent = record.price;
 
-                        // ====== Store history in 3rd DB with paymentComplete=false ======
+                        // Store history in 3rd DB
                         currentRecordRef = dbHistory.ref("vehicleLogs").push({
                             vehicleNo: vehicleNumber,
                             price: record.price,
                             paymentComplete: false
                         });
 
-                        // ====== Listen for payment completion in THIS record ======
+                        // Listen for payment completion
                         currentRecordRef.on("value", (snap) => {
                             if (snap.val() && snap.val().paymentComplete === true) {
                                 window.location.href = 'indexing.html';
@@ -84,11 +107,11 @@
                 }
                 if (found) break;
             }
+
             if (!found) {
                 document.getElementById('amount').textContent = "Not found";
             }
         }
-        dbPrice.ref("slots").once("value", findPrice);
     </script>
 </body>
 </html>
